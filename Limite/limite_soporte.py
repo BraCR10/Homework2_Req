@@ -17,7 +17,8 @@ class LimiteSoporte:
             print("1. Aprobar solicitud de préstamo")
             print("2. Registrar devolución de equipo")
             print("3. Consultar estudiantes morosos")
-            print("4. Volver al menú principal")
+            print("4. Consultar estudiantes con más préstamos")
+            print("5. Volver al menú principal")
             
             opcion = input("\nSeleccione una opción: ")
             
@@ -28,6 +29,8 @@ class LimiteSoporte:
             elif opcion == "3":
                 self.consultar_morosidades()
             elif opcion == "4":
+                self.consultar_estudiantes_con_mas_prestamos()
+            elif opcion == "5":
                 print("Volviendo al menú principal...")
                 salir = True
             else:
@@ -102,8 +105,37 @@ class LimiteSoporte:
         
         self.mostrar_estudiantes(estudiantes_morosos)
     
+    def consultar_estudiantes_con_mas_prestamos(self):
+        print("\n----- ESTUDIANTES CON MÁS PRÉSTAMOS -----")
+        
+        try:
+            cantidad_min = input("Ingrese la cantidad mínima de préstamos para la consulta (por defecto 5): ")
+            if cantidad_min.strip() == "":
+                cantidad_min = 5
+            else:
+                cantidad_min = int(cantidad_min)
+                if cantidad_min < 1:
+                    print("La cantidad debe ser al menos 1.")
+                    return
+        except ValueError:
+            print("Debe ingresar un número entero válido.")
+            return
+        
+        # Obtener los estudiantes con más préstamos que la cantidad solicitada
+        estudiantes_con_mas_prestamos = self.controlador_prestamo.obtener_estudiantes_con_mas_prestamos(cantidad_min)
+        
+        if not estudiantes_con_mas_prestamos:
+            print(f"No hay estudiantes con {cantidad_min} o más préstamos.")
+            return
+        
+        print(f"\nEstudiantes con {cantidad_min} o más préstamos:")
+        for i, (estudiante, cantidad) in enumerate(estudiantes_con_mas_prestamos, 1):
+            print(f"{i}. {estudiante.nombre} - {cantidad} préstamos")
+            print(f"   DNI: {estudiante.dni}")
+            print(f"   Email: {estudiante.correo}")
+            print("")
+    
     def mostrar_estudiantes(self, estudiantes):
         print("\nLista de estudiantes:")
         for i, estudiante in enumerate(estudiantes, 1):
             print(f"{i}. {estudiante.nombre} (DNI: {estudiante.dni}, Email: {estudiante.correo})")
-

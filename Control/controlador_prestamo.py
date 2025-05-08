@@ -68,3 +68,39 @@ class ControladorPrestamo:
                 estudiantes_morosos.append(estudiante)
         
         return estudiantes_morosos
+    
+    def obtener_estudiantes_con_mas_prestamos(self, cantidad_minima):
+        """
+        Obtiene la lista de estudiantes que han realizado más de una cantidad X de préstamos.
+        
+        Args:
+            cantidad_minima (int): Cantidad mínima de préstamos para filtrar estudiantes
+            
+        Returns:
+            list: Lista de tuplas (estudiante, cantidad_prestamos) ordenada por cantidad de préstamos descendente
+        """
+        todos_prestamos = self.prestamo_dao.obtener_todos()
+        
+        # Diccionario para contar préstamos por estudiante
+        conteo_prestamos = {}
+        
+        for prestamo in todos_prestamos:
+            id_estudiante = prestamo.solicitud.estudiante.id
+            if id_estudiante in conteo_prestamos:
+                conteo_prestamos[id_estudiante]['contador'] += 1
+            else:
+                conteo_prestamos[id_estudiante] = {
+                    'estudiante': prestamo.solicitud.estudiante,
+                    'contador': 1
+                }
+        
+        # Filtrar estudiantes con más de cantidad_minima préstamos
+        estudiantes_filtrados = []
+        for id_estudiante, datos in conteo_prestamos.items():
+            if datos['contador'] >= cantidad_minima:
+                estudiantes_filtrados.append((datos['estudiante'], datos['contador']))
+        
+        # Ordenar por cantidad de préstamos (descendente)
+        estudiantes_filtrados.sort(key=lambda x: x[1], reverse=True)
+        
+        return estudiantes_filtrados
