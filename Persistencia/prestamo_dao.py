@@ -51,10 +51,12 @@ class PrestamoDAO:
     def obtener_vencidos(self):
         """Obtiene los préstamos vencidos"""
         ahora = datetime.now()
-        # Buscar préstamos activos con fecha de vencimiento anterior a la actual
+        # Buscar préstamos activos con fecha de vencimiento anterior a la actual o préstamos ya marcados como vencidos
         filtro = {
-            "estado": EstadoPrestamo.ACTIVO.value,
-            "fecha_vencimiento": {"$lt": ahora}
+            "$or": [
+                {"estado": EstadoPrestamo.ACTIVO.value, "fecha_vencimiento": {"$lt": ahora}},
+                {"estado": EstadoPrestamo.VENCIDO.value}
+            ]
         }
         prestamos_docs = self.coleccion.find(filtro)
         return [self._doc_a_entity(doc) for doc in prestamos_docs]
