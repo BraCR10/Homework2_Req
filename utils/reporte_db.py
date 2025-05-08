@@ -4,6 +4,12 @@ Script para generar un informe sobre el estado de la base de datos MongoDB.
 Este script puede ser útil para diagnóstico o para presentaciones.
 """
 
+import sys
+import os
+
+# Agregar el directorio raíz del proyecto al path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from Persistencia.mongo_base import MongoDB
 from Persistencia.estudiante_dao import EstudianteDAO
 from Persistencia.equipo_dao import EquipoDAO
@@ -129,7 +135,7 @@ def generar_reporte():
         print("-" * 50)
         
         # Guardar reporte en archivo
-        nombre_archivo = f"reporte_sistema_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        nombre_archivo = f"Reportes/reporte_sistema_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         with open(nombre_archivo, "w", encoding="utf-8") as f:
             f.write("REPORTE DEL SISTEMA DE PRÉSTAMOS\n")
             f.write("-" * 50 + "\n")

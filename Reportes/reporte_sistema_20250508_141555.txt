@@ -1,0 +1,11 @@
+REPORTE DEL SISTEMA DE PRÉSTAMOS
+--------------------------------------------------
+Tipo de conexión: MongoDB Atlas (Cloud)
+Base de datos: sistema_prestamos
+Fecha del reporte: 2025-05-08 14:15:55
+--------------------------------------------------
+ESTADÍSTICAS GENERALES:
+Total de estudiantes: 5
+Total de equipos: 8
+Total de solicitudes: 14
+Total de préstamos: 12

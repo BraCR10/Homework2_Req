@@ -4,6 +4,11 @@ Script para resetear la base de datos MongoDB.
 Útil durante el desarrollo o para reiniciar el sistema.
 """
 
+import sys
+import os
+
+# Agregar el directorio raíz del proyecto al path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Persistencia.mongo_base import MongoDB
 from Persistencia.inicializador import inicializar_base_datos
 from dotenv import load_dotenv

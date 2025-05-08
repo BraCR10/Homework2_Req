@@ -5,6 +5,11 @@ Ejecutar este script antes de ejecutar la aplicación para asegurarse
 de que la conexión a MongoDB Atlas está configurada correctamente.
 """
 
+import sys
+import os
+
+# Agregar el directorio raíz del proyecto al path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Persistencia.mongo_base import MongoDB
 from dotenv import load_dotenv
 import os

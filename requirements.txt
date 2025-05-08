@@ -1,3 +1,6 @@
 pymongo==4.6.0
 python-dotenv==1.0.0
 Pillow==11.2.1  # Para manejo de imágenes en tkinter
+tk==0.1.0  # Wrapper para tkinter (aunque tkinter viene con Python)
+bson==0.5.10  # Para trabajar con ObjectId y formateo BSON
+dnspython==2.4.2  # Requerido para las conexiones a MongoDB Atlas (mongodb+srv://)
