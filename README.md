@@ -1,4 +1,4 @@
-# Sistema de Préstamos - Iformacion Generas
+# Sistema de Préstamos - Informacion Generas
 
 ## Descripción General
 El Sistema de Préstamos Soporte de Computacion es una aplicación para gestionar el préstamo de equipos electrónicos a estudiantes. Permite a los estudiantes solicitar préstamos y a los usuarios de soporte técnico aprobar solicitudes, registrar devoluciones y consultar morosidades.
