@@ -76,7 +76,8 @@ class LimiteSoporte:
             ("Aprobar solicitud de préstamo", self.mostrar_aprobar_solicitud),
             ("Registrar devolución de equipo", self.mostrar_registrar_devolucion),
             ("Consultar estudiantes morosos", self.mostrar_morosos),
-            ("Consultar estudiantes con N préstamos", self.mostrar_n_prestamos)
+            ("Consultar estudiantes con N préstamos", self.mostrar_n_prestamos),
+            ("Ver historial de solicitudes", self.mostrar_historial_solicitudes)
         ]
         for i, (texto, comando) in enumerate(opciones):
             btn = ttk.Button(
@@ -365,6 +366,35 @@ class LimiteSoporte:
                     tree.insert("", "end", iid=est.dni, values=(est.nombre, est.dni, est.correo, len(prestamos)))
         buscar_btn = ttk.Button(buscar_frame, text="Buscar", command=buscar, style="AccentButton.TButton")
         buscar_btn.pack(side=tk.LEFT, padx=5)
+    
+    def mostrar_historial_solicitudes(self):
+        self.limpiar_content_frame()
+        ttk.Label(self.content_frame, text="Historial de todas las solicitudes", font=("Arial", 16, "bold")).pack(pady=(10, 10))
+        columns = ("seguimiento", "estudiante", "dni", "fecha", "estado", "equipos")
+        tree_frame = ttk.Frame(self.content_frame)
+        tree_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        tree = ttk.Treeview(tree_frame, columns=columns, show="headings", selectmode="browse")
+        tree.heading("seguimiento", text="N° Seguimiento")
+        tree.heading("estudiante", text="Estudiante")
+        tree.heading("dni", text="DNI")
+        tree.heading("fecha", text="Fecha")
+        tree.heading("estado", text="Estado")
+        tree.heading("equipos", text="Equipos")
+        tree.column("seguimiento", width=120, anchor="center")
+        tree.column("estudiante", width=180)
+        tree.column("dni", width=100, anchor="center")
+        tree.column("fecha", width=120, anchor="center")
+        tree.column("estado", width=100, anchor="center")
+        tree.column("equipos", width=300)
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        solicitudes = self.controlador_solicitud.solicitud_dao.obtener_todas()
+        solicitudes = sorted(solicitudes, key=lambda s: s.fecha_solicitud, reverse=True)
+        for s in solicitudes:
+            equipos_str = ", ".join([f"{e.tipo} {e.marca}" for e in s.equipos_solicitados])
+            tree.insert("", "end", iid=s.numero_seguimiento, values=(s.numero_seguimiento, s.estudiante.nombre, s.estudiante.dni, s.fecha_solicitud.strftime('%d/%m/%Y'), s.estado.value, equipos_str))
     
     def cargar_solicitudes_pendientes(self):
         # Implementa la lógica para cargar solicitudes pendientes
