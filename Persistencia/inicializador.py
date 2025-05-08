@@ -148,52 +148,65 @@ def _cargar_datos_de_prueba(mongo):
     ids_equipos = resultado_equipos.inserted_ids
     
     # Crear solicitudes y préstamos
-    # Solicitud 1: María solicita laptop Dell y tablet Samsung
+    # Solicitud 1: María solicita laptop Dell y tablet Samsung (morosidad)
     solicitud1 = {
-        "id_estudiante": estudiantes_por_dni["12345678"],  # María Rodríguez
-        "ids_equipos": [ids_equipos[0], ids_equipos[2]],  # Dell Laptop y Samsung Tablet
-        "fecha_solicitud": datetime.now(),
+        "id_estudiante": estudiantes_por_dni["12345678"],
+        "ids_equipos": [ids_equipos[0], ids_equipos[2]],
+        "fecha_solicitud": datetime.now() - timedelta(days=15),
         "estado": EstadoSolicitud.APROBADO.value,
         "numero_seguimiento": 101
     }
-    
     resultado_solicitud1 = coleccion_solicitudes.insert_one(solicitud1)
     id_solicitud1 = resultado_solicitud1.inserted_id
-    
     # Préstamo 1 (vencido): Para la solicitud 1
     prestamo1 = {
         "id_solicitud": id_solicitud1,
-        "fecha_vencimiento": datetime.now() - timedelta(days=1),
+        "fecha_vencimiento": datetime.now() - timedelta(days=7),
         "fecha_devolucion": None,
         "estado": EstadoPrestamo.VENCIDO.value
     }
-    
     coleccion_prestamos.insert_one(prestamo1)
-    
-    # Solicitud 2: Juan solicita laptop HP
+
+    # Solicitud 2: Carlos solicita disco duro (morosidad)
     solicitud2 = {
-        "id_estudiante": estudiantes_por_dni["23456789"],  # Juan Pérez
-        "ids_equipos": [ids_equipos[1]],  # HP Laptop
-        "fecha_solicitud": datetime.now(),
+        "id_estudiante": estudiantes_por_dni["45678901"],
+        "ids_equipos": [ids_equipos[3]],
+        "fecha_solicitud": datetime.now() - timedelta(days=12),
         "estado": EstadoSolicitud.APROBADO.value,
         "numero_seguimiento": 102
     }
-    
     resultado_solicitud2 = coleccion_solicitudes.insert_one(solicitud2)
     id_solicitud2 = resultado_solicitud2.inserted_id
-    
-    # Préstamo 2 (activo): Para la solicitud 2
+    # Préstamo 2 (vencido): Para la solicitud 2
     prestamo2 = {
         "id_solicitud": id_solicitud2,
+        "fecha_vencimiento": datetime.now() - timedelta(days=5),
+        "fecha_devolucion": None,
+        "estado": EstadoPrestamo.VENCIDO.value
+    }
+    coleccion_prestamos.insert_one(prestamo2)
+
+    # Solicitud 3: Juan solicita laptop HP (activo)
+    solicitud3 = {
+        "id_estudiante": estudiantes_por_dni["23456789"],
+        "ids_equipos": [ids_equipos[1]],
+        "fecha_solicitud": datetime.now(),
+        "estado": EstadoSolicitud.APROBADO.value,
+        "numero_seguimiento": 103
+    }
+    resultado_solicitud3 = coleccion_solicitudes.insert_one(solicitud3)
+    id_solicitud3 = resultado_solicitud3.inserted_id
+    # Préstamo 3 (activo): Para la solicitud 3
+    prestamo3 = {
+        "id_solicitud": id_solicitud3,
         "fecha_vencimiento": datetime.now() + timedelta(days=7),
         "fecha_devolucion": None,
         "estado": EstadoPrestamo.ACTIVO.value
     }
-    
-    coleccion_prestamos.insert_one(prestamo2)
+    coleccion_prestamos.insert_one(prestamo3)
     
     # Crear más solicitudes y préstamos para María (tendrá 6 en total incluyendo el anterior)
-    numero_seguimiento = 103
+    numero_seguimiento = 104
     
     for i in range(5):
         id_equipo = ids_equipos[(i % 4) + 3]  # Usar equipos 4, 5, 6, 7, 8

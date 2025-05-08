@@ -163,23 +163,208 @@ class LimiteSoporte:
     
     def mostrar_aprobar_solicitud(self):
         self.limpiar_content_frame()
-        # Aquí va la lógica para mostrar solicitudes pendientes y aprobar/rechazar
-        ttk.Label(self.content_frame, text="Aquí se mostrarán las solicitudes pendientes para aprobar/rechazar.", font=("Arial", 14)).pack(pady=20)
+        # Título
+        ttk.Label(self.content_frame, text="Solicitudes pendientes de aprobación", font=("Arial", 16, "bold")).pack(pady=(10, 10))
+        # Treeview para solicitudes
+        columns = ("seguimiento", "estudiante", "dni", "fecha", "equipos")
+        tree = ttk.Treeview(self.content_frame, columns=columns, show="headings", selectmode="browse")
+        tree.heading("seguimiento", text="N° Seguimiento")
+        tree.heading("estudiante", text="Estudiante")
+        tree.heading("dni", text="DNI")
+        tree.heading("fecha", text="Fecha")
+        tree.heading("equipos", text="Equipos")
+        tree.column("seguimiento", width=120, anchor="center")
+        tree.column("estudiante", width=180)
+        tree.column("dni", width=100, anchor="center")
+        tree.column("fecha", width=120, anchor="center")
+        tree.column("equipos", width=300)
+        tree.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(self.content_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Cargar solicitudes pendientes
+        solicitudes = [s for s in self.controlador_solicitud.solicitud_dao.obtener_todas() if s.estado.value == "Pendiente"]
+        for s in solicitudes:
+            equipos_str = ", ".join([f"{e.tipo} {e.marca}" for e in s.equipos_solicitados])
+            tree.insert("", "end", iid=s.numero_seguimiento, values=(s.numero_seguimiento, s.estudiante.nombre, s.estudiante.dni, s.fecha_solicitud.strftime('%d/%m/%Y'), equipos_str))
+        # Botones de acción
+        action_frame = ttk.Frame(self.content_frame)
+        action_frame.pack(pady=10)
+        aprobar_btn = ttk.Button(action_frame, text="Aprobar", style="SuccessButton.TButton", state=tk.DISABLED)
+        rechazar_btn = ttk.Button(action_frame, text="Rechazar", style="DangerButton.TButton", state=tk.DISABLED)
+        aprobar_btn.pack(side=tk.LEFT, padx=10)
+        rechazar_btn.pack(side=tk.LEFT, padx=10)
+        # Habilitar botones al seleccionar
+        def on_select(event):
+            selected = tree.selection()
+            if selected:
+                aprobar_btn.config(state=tk.NORMAL)
+                rechazar_btn.config(state=tk.NORMAL)
+            else:
+                aprobar_btn.config(state=tk.DISABLED)
+                rechazar_btn.config(state=tk.DISABLED)
+        tree.bind("<<TreeviewSelect>>", on_select)
+        # Funciones de aprobar/rechazar
+        def aprobar():
+            selected = tree.selection()
+            if not selected:
+                return
+            num = tree.item(selected[0], "values")[0]
+            ok, msg = self.controlador_solicitud.aprobar_solicitud(num)
+            if ok:
+                messagebox.showinfo("Éxito", msg)
+                self.mostrar_aprobar_solicitud()
+            else:
+                messagebox.showerror("Error", msg)
+        def rechazar():
+            selected = tree.selection()
+            if not selected:
+                return
+            num = tree.item(selected[0], "values")[0]
+            ok, msg = self.controlador_solicitud.cambiar_estado(num, EstadoSolicitud.RECHAZADO)
+            if ok:
+                messagebox.showinfo("Éxito", msg)
+                self.mostrar_aprobar_solicitud()
+            else:
+                messagebox.showerror("Error", msg)
+        aprobar_btn.config(command=aprobar)
+        rechazar_btn.config(command=rechazar)
     
     def mostrar_registrar_devolucion(self):
         self.limpiar_content_frame()
-        # Aquí va la lógica para registrar devolución
-        ttk.Label(self.content_frame, text="Aquí se podrá registrar la devolución de un equipo.", font=("Arial", 14)).pack(pady=20)
+        ttk.Label(self.content_frame, text="Registrar devolución de equipo", font=("Arial", 16, "bold")).pack(pady=(10, 10))
+        buscar_frame = ttk.Frame(self.content_frame)
+        buscar_frame.pack(pady=10)
+        ttk.Label(buscar_frame, text="N° de seguimiento:", font=("Arial", 12)).pack(side=tk.LEFT)
+        seguimiento_var = tk.StringVar()
+        entry = ttk.Entry(buscar_frame, textvariable=seguimiento_var, width=20)
+        entry.pack(side=tk.LEFT, padx=5)
+        resultado_frame = ttk.Frame(self.content_frame)
+        resultado_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        detalles_label = ttk.Label(resultado_frame, text="", font=("Arial", 12))
+        detalles_label.pack(pady=10)
+        devolver_btn = ttk.Button(resultado_frame, text="Registrar devolución", style="SuccessButton.TButton", state=tk.DISABLED)
+        devolver_btn.pack(pady=5)
+        def buscar():
+            num = seguimiento_var.get().strip()
+            solicitud = self.controlador_solicitud.solicitud_dao.obtener_por_numero_seguimiento(num)
+            if not solicitud:
+                detalles_label.config(text="No se encontró ninguna solicitud con ese número.")
+                devolver_btn.config(state=tk.DISABLED)
+                return
+            equipos_str = ", ".join([f"{e.tipo} {e.marca}" for e in solicitud.equipos_solicitados])
+            detalles = f"Estudiante: {solicitud.estudiante.nombre}\nDNI: {solicitud.estudiante.dni}\nFecha: {solicitud.fecha_solicitud.strftime('%d/%m/%Y')}\nEquipos: {equipos_str}\nEstado: {solicitud.estado.value}"
+            detalles_label.config(text=detalles)
+            if solicitud.estado.value == "Aprobado":
+                devolver_btn.config(state=tk.NORMAL)
+            else:
+                devolver_btn.config(state=tk.DISABLED)
+        def registrar_devolucion():
+            num = seguimiento_var.get().strip()
+            solicitud = self.controlador_solicitud.solicitud_dao.obtener_por_numero_seguimiento(num)
+            if not solicitud:
+                messagebox.showerror("Error", "No se encontró la solicitud.")
+                return
+            prestamos = self.controlador_prestamo.prestamo_dao.obtener_por_estudiante(solicitud.estudiante.id)
+            prestamo = next((p for p in prestamos if p.solicitud.numero_seguimiento == int(num)), None)
+            if not prestamo:
+                # Si la solicitud está aprobada, crear el préstamo automáticamente
+                if solicitud.estado.value == "Aprobado":
+                    prestamo, msg = self.controlador_prestamo.crear_prestamo(solicitud)
+                    if not prestamo:
+                        messagebox.showerror("Error", msg)
+                        return
+                else:
+                    messagebox.showerror("Error", "No se encontró el préstamo asociado.")
+                    return
+            ok, msg = self.controlador_prestamo.confirma_devolucion(prestamo.id)
+            if ok:
+                messagebox.showinfo("Éxito", msg)
+                detalles_label.config(text="")
+                devolver_btn.config(state=tk.DISABLED)
+            else:
+                messagebox.showerror("Error", msg)
+        buscar_btn = ttk.Button(buscar_frame, text="Buscar", command=buscar, style="AccentButton.TButton")
+        buscar_btn.pack(side=tk.LEFT, padx=5)
+        devolver_btn.config(command=registrar_devolucion)
     
     def mostrar_morosos(self):
         self.limpiar_content_frame()
-        # Aquí va la lógica para mostrar estudiantes morosos
-        ttk.Label(self.content_frame, text="Aquí se mostrarán los estudiantes morosos.", font=("Arial", 14)).pack(pady=20)
+        ttk.Label(self.content_frame, text="Estudiantes morosos", font=("Arial", 16, "bold")).pack(pady=(10, 10))
+        columns = ("nombre", "dni", "correo")
+        tree = ttk.Treeview(self.content_frame, columns=columns, show="headings", selectmode="browse")
+        tree.heading("nombre", text="Nombre")
+        tree.heading("dni", text="DNI")
+        tree.heading("correo", text="Correo")
+        tree.column("nombre", width=180)
+        tree.column("dni", width=100, anchor="center")
+        tree.column("correo", width=200)
+        tree.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(self.content_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Cargar morosos
+        morosos = self.controlador_prestamo.consultar_morosidades()
+        for est in morosos:
+            tree.insert("", "end", iid=est.dni, values=(est.nombre, est.dni, est.correo))
+        # Mostrar detalles al seleccionar
+        detalles_label = ttk.Label(self.content_frame, text="", font=("Arial", 12))
+        detalles_label.pack(pady=10)
+        def on_select(event):
+            selected = tree.selection()
+            if not selected:
+                detalles_label.config(text="")
+                return
+            dni = tree.item(selected[0], "values")[1]
+            estudiante = self.controlador_estudiante.obtener_estudiante_por_dni(dni)
+            prestamos = self.controlador_prestamo.obtener_prestamos_vencidos_por_estudiante(estudiante.id)
+            detalles = f"Préstamos vencidos: {len(prestamos)}\n"
+            for p in prestamos:
+                detalles += f"- Solicitud #{p.solicitud.numero_seguimiento} | Equipo(s): {', '.join([e.tipo for e in p.solicitud.equipos_solicitados])} | Vencimiento: {p.fecha_vencimiento.strftime('%d/%m/%Y')}\n"
+            detalles_label.config(text=detalles)
+        tree.bind("<<TreeviewSelect>>", on_select)
     
     def mostrar_n_prestamos(self):
         self.limpiar_content_frame()
-        # Aquí va la lógica para consultar estudiantes con N préstamos
-        ttk.Label(self.content_frame, text="Aquí se podrá consultar estudiantes con N préstamos.", font=("Arial", 14)).pack(pady=20)
+        ttk.Label(self.content_frame, text="Consultar estudiantes con N préstamos", font=("Arial", 16, "bold")).pack(pady=(10, 10))
+        buscar_frame = ttk.Frame(self.content_frame)
+        buscar_frame.pack(pady=10)
+        ttk.Label(buscar_frame, text="N (mínimo de préstamos):", font=("Arial", 12)).pack(side=tk.LEFT)
+        n_var = tk.StringVar()
+        entry = ttk.Entry(buscar_frame, textvariable=n_var, width=10)
+        entry.pack(side=tk.LEFT, padx=5)
+        resultado_frame = ttk.Frame(self.content_frame)
+        resultado_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        columns = ("nombre", "dni", "correo", "cantidad")
+        tree = ttk.Treeview(resultado_frame, columns=columns, show="headings", selectmode="browse")
+        tree.heading("nombre", text="Nombre")
+        tree.heading("dni", text="DNI")
+        tree.heading("correo", text="Correo")
+        tree.heading("cantidad", text="Cantidad")
+        tree.column("nombre", width=180)
+        tree.column("dni", width=100, anchor="center")
+        tree.column("correo", width=200)
+        tree.column("cantidad", width=100, anchor="center")
+        tree.pack(fill=tk.BOTH, expand=True)
+        scrollbar = ttk.Scrollbar(resultado_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        def buscar():
+            n = n_var.get().strip()
+            if not n.isdigit() or int(n) < 1:
+                messagebox.showerror("Error", "Ingrese un número válido mayor a 0")
+                return
+            n = int(n)
+            tree.delete(*tree.get_children())
+            estudiantes = self.controlador_estudiante.obtener_todos_estudiantes()
+            for est in estudiantes:
+                prestamos = self.controlador_prestamo.prestamo_dao.obtener_por_estudiante(est.id)
+                if len(prestamos) >= n:
+                    tree.insert("", "end", iid=est.dni, values=(est.nombre, est.dni, est.correo, len(prestamos)))
+        buscar_btn = ttk.Button(buscar_frame, text="Buscar", command=buscar, style="AccentButton.TButton")
+        buscar_btn.pack(side=tk.LEFT, padx=5)
     
     def cargar_solicitudes_pendientes(self):
         # Implementa la lógica para cargar solicitudes pendientes
