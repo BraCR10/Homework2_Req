@@ -1,8 +1,7 @@
-
 # Limite/limite_estudiante.py
 from Control.controlador_solicitud import ControladorSolicitud
 from Control.controlador_estudiante import ControladorEstudiante
-from Dominio.equipo_dao import EquipoDAO
+from Persistencia.equipo_dao import EquipoDAO
 from Entity.Solicitud import Solicitud
 from Entity.Estudiante import Estudiante
 
@@ -17,17 +16,53 @@ class LimiteEstudiante:
         while not salir:
             print("\n===== SISTEMA DE PRÉSTAMOS - ESTUDIANTE =====")
             print("1. Solicitar préstamo de equipo")
-            print("2. Volver al menú principal")
+            print("2. Consultar estado de mis solicitudes")
+            print("3. Volver al menú principal")
             
             opcion = input("\nSeleccione una opción: ")
             
             if opcion == "1":
                 self.hacer_solicitud()
             elif opcion == "2":
+                self.consultar_mis_solicitudes()
+            elif opcion == "3":
                 print("Volviendo al menú principal...")
                 salir = True
             else:
                 print("Opción no válida. Intente de nuevo.")
+    
+    def consultar_mis_solicitudes(self):
+        """Permite a un estudiante consultar el estado de sus solicitudes"""
+        print("\n----- CONSULTA DE SOLICITUDES -----")
+        
+        # Solicitar DNI para identificar al estudiante
+        dni_estudiante = input("Ingrese su DNI: ")
+        
+        # Verificar si el estudiante existe
+        estudiante = self.controlador_estudiante.obtener_estudiante_por_dni(dni_estudiante)
+        
+        if not estudiante:
+            print("No se encontró ningún estudiante con ese DNI.")
+            return
+        
+        print(f"\nBienvenido/a, {estudiante.nombre}!")
+        
+        # Obtener las solicitudes del estudiante
+        solicitudes = self.controlador_solicitud.solicitud_dao.obtener_por_estudiante(estudiante.id)
+        
+        if not solicitudes:
+            print("No tienes solicitudes registradas.")
+            return
+        
+        print("\nTus solicitudes:")
+        for i, solicitud in enumerate(solicitudes, 1):
+            print(f"{i}. Solicitud #{solicitud.numero_seguimiento}")
+            print(f"   Estado: {solicitud.estado.value}")
+            print(f"   Fecha: {solicitud.fecha_solicitud.strftime('%d/%m/%Y')}")
+            print(f"   Equipos solicitados:")
+            for equipo in solicitud.equipos_solicitados:
+                print(f"   - {equipo.tipo} {equipo.marca} {equipo.modelo}")
+            print("")
     
     def hacer_solicitud(self):
         print("\n----- SOLICITUD DE PRÉSTAMO -----")
@@ -87,18 +122,17 @@ class LimiteEstudiante:
         # Obtener IDs de equipos seleccionados
         ids_equipos_solicitados = [equipos_disponibles[i-1].id for i in indices_seleccionados]
         
-        # Usar el objeto estudiante directamente en lugar de buscar por DNI nuevamente
-        solicitud = self.controlador_solicitud.solicitud_dao.agregar(
-            Solicitud(None, estudiante, [self.equipo_dao.obtener_por_id(id_eq) for id_eq in ids_equipos_solicitados])
-        )
+        # Usar el controlador para crear la solicitud
+        solicitud, mensaje = self.controlador_solicitud.hacer_solicitud(dni_estudiante, ids_equipos_solicitados)
         
         if solicitud:
-            print("Solicitud creada exitosamente")
-            self.mostrar_confirmacion_solicitud(solicitud.id)
+            print(mensaje)
+            self.mostrar_confirmacion_solicitud(solicitud)
         else:
-            print("Error al crear la solicitud")
+            print(f"Error: {mensaje}")
     
-    def mostrar_confirmacion_solicitud(self, id_solicitud):
-        print(f"\n¡Solicitud #{id_solicitud} creada exitosamente!")
+    def mostrar_confirmacion_solicitud(self, solicitud):
+        print(f"\n¡Solicitud #{solicitud.numero_seguimiento} creada exitosamente!")
         print("La solicitud está pendiente de aprobación por parte del personal de soporte.")
         print("Por favor, espere a que su solicitud sea procesada.")
+        print(f"Puede consultar el estado de su solicitud con el número de seguimiento: {solicitud.numero_seguimiento}")

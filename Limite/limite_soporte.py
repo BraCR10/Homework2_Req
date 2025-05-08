@@ -3,12 +3,14 @@ from Control.controlador_solicitud import ControladorSolicitud
 from Control.controlador_prestamo import ControladorPrestamo
 from Control.controlador_estudiante import ControladorEstudiante
 from Entity.enumeraciones import EstadoSolicitud, EstadoPrestamo
+from Persistencia.solicitud_dao import SolicitudDAO
 
 class LimiteSoporte:
     def __init__(self):
         self.controlador_solicitud = ControladorSolicitud()
         self.controlador_prestamo = ControladorPrestamo()
         self.controlador_estudiante = ControladorEstudiante()
+        self.solicitud_dao = SolicitudDAO()
     
     def menu_administrador_soporte(self):
         salir = False
@@ -18,7 +20,8 @@ class LimiteSoporte:
             print("2. Registrar devolución de equipo")
             print("3. Consultar estudiantes morosos")
             print("4. Consultar estudiantes con más préstamos")
-            print("5. Volver al menú principal")
+            print("5. Listar todas las solicitudes pendientes")
+            print("6. Volver al menú principal")
             
             opcion = input("\nSeleccione una opción: ")
             
@@ -31,19 +34,49 @@ class LimiteSoporte:
             elif opcion == "4":
                 self.consultar_estudiantes_con_mas_prestamos()
             elif opcion == "5":
+                self.listar_solicitudes_pendientes()
+            elif opcion == "6":
                 print("Volviendo al menú principal...")
                 salir = True
             else:
                 print("Opción no válida. Intente de nuevo.")
     
+    def listar_solicitudes_pendientes(self):
+        """Lista todas las solicitudes pendientes con sus números de seguimiento"""
+        print("\n----- SOLICITUDES PENDIENTES -----")
+        
+        # Obtener todas las solicitudes
+        todas_solicitudes = self.solicitud_dao.obtener_todas()
+        
+        # Filtrar las solicitudes pendientes
+        solicitudes_pendientes = [s for s in todas_solicitudes if s.estado == EstadoSolicitud.PENDIENTE]
+        
+        if not solicitudes_pendientes:
+            print("No hay solicitudes pendientes en este momento.")
+            return
+        
+        print("\nListado de solicitudes pendientes:")
+        for i, solicitud in enumerate(solicitudes_pendientes, 1):
+            print(f"{i}. Solicitud #{solicitud.numero_seguimiento} - Estudiante: {solicitud.estudiante.nombre}")
+            print(f"   Fecha: {solicitud.fecha_solicitud.strftime('%d/%m/%Y')}")
+            print(f"   Equipos solicitados:")
+            for equipo in solicitud.equipos_solicitados:
+                print(f"   - {equipo.tipo} {equipo.marca} {equipo.modelo}")
+            print("")
+    
     def menu_aprobar_solicitud(self):
         print("\n----- APROBAR SOLICITUD DE PRÉSTAMO -----")
-        id_solicitud = input("Ingrese el ID de la solicitud: ")
+        
+        # Primero mostrar las solicitudes pendientes para referencia
+        self.listar_solicitudes_pendientes()
+        
+        id_solicitud = input("\nIngrese el NÚMERO DE SEGUIMIENTO de la solicitud a aprobar: ")
         
         try:
+            # Intentar convertir a entero
             id_solicitud = int(id_solicitud)
         except ValueError:
-            print("El ID debe ser un número entero.")
+            print("El número de seguimiento debe ser un número entero.")
             return
         
         exito, mensaje = self.controlador_solicitud.aprobar_solicitud(id_solicitud)
@@ -51,17 +84,19 @@ class LimiteSoporte:
         
         if exito:
             # Si se aprobó la solicitud, crear el préstamo
-            solicitud = self.controlador_solicitud.solicitud_dao.obtener_por_id(id_solicitud)
-            prestamo, mensaje_prestamo = self.controlador_prestamo.crear_prestamo(solicitud)
-            
-            if prestamo:
-                self.mostrar_prestamo(prestamo)
-            else:
-                print(mensaje_prestamo)
+            solicitud = self.solicitud_dao.obtener_por_numero_seguimiento(id_solicitud)
+            if solicitud:
+                prestamo, mensaje_prestamo = self.controlador_prestamo.crear_prestamo(solicitud)
+                
+                if prestamo:
+                    self.mostrar_prestamo(prestamo)
+                else:
+                    print(mensaje_prestamo)
     
     def mostrar_prestamo(self, prestamo):
         print("\n----- DETALLES DEL PRÉSTAMO -----")
         print(f"ID: {prestamo.id}")
+        print(f"Solicitud: #{prestamo.solicitud.numero_seguimiento}")
         print(f"Estado: {prestamo.estado.value}")
         print(f"Fecha de solicitud: {prestamo.fecha_solicitud.strftime('%d/%m/%Y')}")
         print(f"Fecha de vencimiento: {prestamo.fecha_vencimiento.strftime('%d/%m/%Y')}")
