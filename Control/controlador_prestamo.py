@@ -104,3 +104,9 @@ class ControladorPrestamo:
         estudiantes_filtrados.sort(key=lambda x: x[1], reverse=True)
         
         return estudiantes_filtrados
+    
+    def obtener_prestamos_vencidos_por_estudiante(self, id_estudiante):
+        """Devuelve una lista de préstamos vencidos para un estudiante dado."""
+        prestamos = self.prestamo_dao.obtener_por_estudiante(id_estudiante)
+        vencidos = [p for p in prestamos if p.estado == EstadoPrestamo.VENCIDO or p.esta_vencido()]
+        return vencidos

@@ -115,20 +115,22 @@ class LimiteSoporte:
         # Botones normales
         self.style.configure("NormalButton.TButton", 
                             font=("Arial", 11),
-                            background="#e0e0e0")
+                            background="#e0e0e0",
+                            foreground="black")
         
         self.style.map("NormalButton.TButton",
-                      background=[('active', "#c0c0c0")])
+                      background=[('active', "#c0c0c0")],
+                      foreground=[('active', 'black')])
         
         # Botones de acción principal
         self.style.configure("AccentButton.TButton", 
                             font=("Arial", 12),
                             background=self.COLOR_PRIMARY,
-                            foreground="white")
+                            foreground="black")
         
         self.style.map("AccentButton.TButton",
                       background=[('active', self.COLOR_SECONDARY)],
-                      foreground=[('active', 'white')])
+                      foreground=[('active', 'black')])
         
         # Botón de éxito (verde)
         self.style.configure("SuccessButton.TButton", 
@@ -293,14 +295,16 @@ class LimiteSoporte:
     def mostrar_morosos(self):
         self.limpiar_content_frame()
         ttk.Label(self.content_frame, text="Estudiantes morosos", font=("Arial", 16, "bold")).pack(pady=(10, 10))
-        columns = ("nombre", "dni", "correo")
+        columns = ("nombre", "dni", "correo", "fecha_vencimiento")
         tree = ttk.Treeview(self.content_frame, columns=columns, show="headings", selectmode="browse")
         tree.heading("nombre", text="Nombre")
         tree.heading("dni", text="DNI")
         tree.heading("correo", text="Correo")
+        tree.heading("fecha_vencimiento", text="Fecha de vencimiento")
         tree.column("nombre", width=180)
         tree.column("dni", width=100, anchor="center")
         tree.column("correo", width=200)
+        tree.column("fecha_vencimiento", width=150, anchor="center")
         tree.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         # Scrollbar
         scrollbar = ttk.Scrollbar(self.content_frame, orient=tk.VERTICAL, command=tree.yview)
@@ -309,7 +313,12 @@ class LimiteSoporte:
         # Cargar morosos
         morosos = self.controlador_prestamo.consultar_morosidades()
         for est in morosos:
-            tree.insert("", "end", iid=est.dni, values=(est.nombre, est.dni, est.correo))
+            prestamos = self.controlador_prestamo.obtener_prestamos_vencidos_por_estudiante(est.id)
+            if prestamos:
+                fecha_venc = prestamos[0].fecha_vencimiento.strftime('%d/%m/%Y')
+            else:
+                fecha_venc = "-"
+            tree.insert("", "end", iid=est.dni, values=(est.nombre, est.dni, est.correo, fecha_venc))
         # Mostrar detalles al seleccionar
         detalles_label = ttk.Label(self.content_frame, text="", font=("Arial", 12))
         detalles_label.pack(pady=10)

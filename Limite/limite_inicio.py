@@ -166,20 +166,20 @@ class LimiteInicio:
         self.style.configure("AccentButton.TButton", 
                             font=("Arial", 12, "bold"),
                             background=self.COLOR_PRIMARY,
-                            foreground="white")
+                            foreground="black")
         
         self.style.map("AccentButton.TButton",
                       background=[('active', self.COLOR_SECONDARY)],
-                      foreground=[('active', 'white')])
+                      foreground=[('active', 'black')])
         
         self.style.configure("DangerButton.TButton", 
                             font=("Arial", 10),
                             background="#d9534f",
-                            foreground="white")
+                            foreground="black")
         
         self.style.map("DangerButton.TButton",
                       background=[('active', "#c9302c")],
-                      foreground=[('active', 'white')])
+                      foreground=[('active', 'black')])
     
     def center_window(self):
         """Centra la ventana en la pantalla"""

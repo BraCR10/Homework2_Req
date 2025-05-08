@@ -103,18 +103,20 @@ class LimiteEstudiante:
         self.style.configure("AccentButton.TButton", 
                             font=("Arial", 12),
                             background=self.COLOR_PRIMARY,
-                            foreground="white")
+                            foreground="black")
         
         self.style.map("AccentButton.TButton",
                       background=[('active', self.COLOR_SECONDARY)],
-                      foreground=[('active', 'white')])
+                      foreground=[('active', 'black')])
         
         self.style.configure("NormalButton.TButton", 
                             font=("Arial", 11),
-                            background="#e0e0e0")
+                            background="#e0e0e0",
+                            foreground="black")
         
         self.style.map("NormalButton.TButton",
-                      background=[('active', "#c0c0c0")])
+                      background=[('active', "#c0c0c0")],
+                      foreground=[('active', 'black')])
     
     def setup_solicitud_frame(self):
         """Configura la pestaña de solicitud de préstamo"""
@@ -130,6 +132,15 @@ class LimiteEstudiante:
             foreground=self.COLOR_TEXT,
             background=self.COLOR_BACKGROUND
         ).pack(pady=(0, 15))
+        
+        # Mensaje de advertencia sobre el plazo de préstamo
+        ttk.Label(
+            self.form_frame,
+            text="Todos los préstamos son por un plazo de 7 días",
+            font=("Arial", 11, "bold"),
+            foreground="#F44336",  # Rojo
+            background=self.COLOR_BACKGROUND
+        ).pack(pady=(0, 5))
         
         # Campos del formulario
         self.form_fields_frame = ttk.Frame(self.form_frame, style="ContentFrame.TFrame")
