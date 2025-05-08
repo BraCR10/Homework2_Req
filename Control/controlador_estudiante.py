@@ -1,6 +1,6 @@
 # Control/controlador_estudiante.py
-from Dominio.estudiante_dao import EstudianteDAO
-from Dominio.prestamo_dao import PrestamoDAO
+from Persistencia.estudiante_dao import EstudianteDAO
+from Persistencia.prestamo_dao import PrestamoDAO
 from Entity.enumeraciones import EstadoPrestamo
 
 class ControladorEstudiante:

@@ -1,7 +1,7 @@
 # Control/controlador_prestamo.py
-from Dominio.prestamo_dao import PrestamoDAO
-from Dominio.solicitud_dao import SolicitudDAO
-from Dominio.equipo_dao import EquipoDAO
+from Persistencia.prestamo_dao import PrestamoDAO
+from Persistencia.solicitud_dao import SolicitudDAO
+from Persistencia.equipo_dao import EquipoDAO
 from Entity.Prestamo import Prestamo
 from Entity.enumeraciones import EstadoPrestamo, EstadoSolicitud
 from datetime import datetime

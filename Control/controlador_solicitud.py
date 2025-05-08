@@ -1,7 +1,7 @@
 # Control/controlador_solicitud.py
-from Dominio.solicitud_dao import SolicitudDAO
-from Dominio.equipo_dao import EquipoDAO
-from Dominio.estudiante_dao import EstudianteDAO
+from Persistencia.solicitud_dao import SolicitudDAO
+from Persistencia.equipo_dao import EquipoDAO
+from Persistencia.estudiante_dao import EstudianteDAO
 from Entity.Solicitud import Solicitud
 from Entity.enumeraciones import EstadoSolicitud
 
@@ -28,13 +28,30 @@ class ControladorSolicitud:
         nueva_solicitud = Solicitud(None, estudiante, equipos_solicitados)
         solicitud_guardada = self.solicitud_dao.agregar(nueva_solicitud)
         
-        return solicitud_guardada, "Solicitud creada exitosamente"
+        return solicitud_guardada, f"Solicitud #{solicitud_guardada.numero_seguimiento} creada exitosamente"
     
     def añadir_solicitud(self, dni_estudiante, ids_equipos_solicitados):
         # Aseguramos que este método solo llame a hacer_solicitud para mantener la consistencia
         return self.hacer_solicitud(dni_estudiante, ids_equipos_solicitados)
     
-    def aprobar_solicitud(self, id_solicitud):
+    def aprobar_solicitud(self, numero_seguimiento):
+        solicitud = self.solicitud_dao.obtener_por_numero_seguimiento(numero_seguimiento)
+        if not solicitud:
+            return False, f"Solicitud #{numero_seguimiento} no encontrada"
+        
+        if solicitud.estado != EstadoSolicitud.PENDIENTE:
+            return False, f"La solicitud #{numero_seguimiento} ya fue {solicitud.estado.value.lower()}"
+        
+        # Marcar los equipos como no disponibles
+        for equipo in solicitud.equipos_solicitados:
+            self.equipo_dao.actualizar_disponibilidad(equipo.id, False)
+        
+        # Cambiar el estado de la solicitud
+        self.solicitud_dao.actualizar_estado_por_numero_seguimiento(numero_seguimiento, EstadoSolicitud.APROBADO)
+        
+        return True, f"Solicitud #{numero_seguimiento} aprobada exitosamente"
+    
+    def aprobar_solicitud_por_id(self, id_solicitud):
         solicitud = self.solicitud_dao.obtener_por_id(id_solicitud)
         if not solicitud:
             return False, "Solicitud no encontrada"
@@ -49,14 +66,14 @@ class ControladorSolicitud:
         # Cambiar el estado de la solicitud
         self.solicitud_dao.actualizar_estado(id_solicitud, EstadoSolicitud.APROBADO)
         
-        return True, "Solicitud aprobada exitosamente"
+        return True, f"Solicitud #{solicitud.numero_seguimiento} aprobada exitosamente"
     
-    def cambiar_estado(self, id_solicitud, nuevo_estado):
+    def cambiar_estado(self, numero_seguimiento, nuevo_estado):
         if not isinstance(nuevo_estado, EstadoSolicitud):
             return False, "Estado no válido"
             
-        resultado = self.solicitud_dao.actualizar_estado(id_solicitud, nuevo_estado)
+        resultado = self.solicitud_dao.actualizar_estado_por_numero_seguimiento(numero_seguimiento, nuevo_estado)
         if resultado:
-            return True, f"Estado de solicitud cambiado a {nuevo_estado.value}"
+            return True, f"Estado de solicitud #{numero_seguimiento} cambiado a {nuevo_estado.value}"
         else:
-            return False, "Solicitud no encontrada"
+            return False, f"Solicitud #{numero_seguimiento} no encontrada"
