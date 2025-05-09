@@ -136,11 +136,11 @@ class LimiteSoporte:
         self.style.configure("SuccessButton.TButton", 
                             font=("Arial", 12),
                             background=self.COLOR_SUCCESS,
-                            foreground="white")
+                            foreground="black")
         
         self.style.map("SuccessButton.TButton",
                       background=[('active', "#2E7D32")],
-                      foreground=[('active', 'white')])
+                      foreground=[('active', 'black')])
         
         # Botón de advertencia (amarillo)
         self.style.configure("WarningButton.TButton", 
@@ -154,11 +154,11 @@ class LimiteSoporte:
         self.style.configure("DangerButton.TButton", 
                             font=("Arial", 12),
                             background=self.COLOR_DANGER,
-                            foreground="white")
+                            foreground="black")
         
         self.style.map("DangerButton.TButton",
                       background=[('active', "#D32F2F")],
-                      foreground=[('active', 'white')])
+                      foreground=[('active', 'black')])
     
     def limpiar_content_frame(self):
         for widget in self.content_frame.winfo_children():
