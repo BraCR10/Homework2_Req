@@ -166,6 +166,14 @@ class LimiteSoporte:
     
     def mostrar_aprobar_solicitud(self):
         self.limpiar_content_frame()
+        
+        # Botones de acción
+        action_frame = ttk.Frame(self.content_frame)
+        action_frame.pack(pady=10)
+        aprobar_btn = ttk.Button(action_frame, text="Aprobar", style="SuccessButton.TButton", state=tk.DISABLED)
+        rechazar_btn = ttk.Button(action_frame, text="Rechazar", style="DangerButton.TButton", state=tk.DISABLED)
+        aprobar_btn.pack(side=tk.LEFT, padx=10)
+        rechazar_btn.pack(side=tk.LEFT, padx=10)
         # Título
         ttk.Label(self.content_frame, text="Solicitudes pendientes de aprobación", font=("Arial", 16, "bold")).pack(pady=(10, 10))
         # Treeview para solicitudes
@@ -191,23 +199,7 @@ class LimiteSoporte:
         for s in solicitudes:
             equipos_str = ", ".join([f"{e.tipo} {e.marca}" for e in s.equipos_solicitados])
             tree.insert("", "end", iid=s.numero_seguimiento, values=(s.numero_seguimiento, s.estudiante.nombre, s.estudiante.dni, s.fecha_solicitud.strftime('%d/%m/%Y'), equipos_str))
-        # Botones de acción
-        action_frame = ttk.Frame(self.content_frame)
-        action_frame.pack(pady=10)
-        aprobar_btn = ttk.Button(action_frame, text="Aprobar", style="SuccessButton.TButton", state=tk.DISABLED)
-        rechazar_btn = ttk.Button(action_frame, text="Rechazar", style="DangerButton.TButton", state=tk.DISABLED)
-        aprobar_btn.pack(side=tk.LEFT, padx=10)
-        rechazar_btn.pack(side=tk.LEFT, padx=10)
-        # Habilitar botones al seleccionar
-        def on_select(event):
-            selected = tree.selection()
-            if selected:
-                aprobar_btn.config(state=tk.NORMAL)
-                rechazar_btn.config(state=tk.NORMAL)
-            else:
-                aprobar_btn.config(state=tk.DISABLED)
-                rechazar_btn.config(state=tk.DISABLED)
-        tree.bind("<<TreeviewSelect>>", on_select)
+    
         # Funciones de aprobar/rechazar
         def aprobar():
             selected = tree.selection()
@@ -233,6 +225,17 @@ class LimiteSoporte:
                 messagebox.showerror("Error", msg)
         aprobar_btn.config(command=aprobar)
         rechazar_btn.config(command=rechazar)
+        # Habilitar botones al seleccionar
+        def on_select(event):
+            selected = tree.selection()
+            if selected:
+                aprobar_btn.config(state=tk.NORMAL)
+                rechazar_btn.config(state=tk.NORMAL)
+            else:
+                aprobar_btn.config(state=tk.DISABLED)
+                rechazar_btn.config(state=tk.DISABLED)
+        tree.bind("<<TreeviewSelect>>", on_select)
+        
     
     def mostrar_registrar_devolucion(self):
         self.limpiar_content_frame()
